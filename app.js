@@ -10,6 +10,7 @@ const state = {
   currentQuestion: null,
   quizLocked:      false,
   examAnswers:     [],   // "ok" | "fail" | null
+  voiceLang:       "pt-BR",   // "pt-BR" | "en-US"
   exam: { active: false, index: 0, total: 10, correct: 0, questions: [] }
 };
 
@@ -44,31 +45,65 @@ function resetProgress() {
 }
 
 /* ── Voz ──────────────────────────────────────────────────── */
-let voiceReady = false;
-function ensureVoices() {
-  if (voiceReady) return;
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => { voiceReady = true; };
-    voiceReady = true;
+let cachedVoice = null;
+
+function getVoice(lang) {
+  const voices = window.speechSynthesis.getVoices();
+  if (lang === "en-US") {
+    return voices.find(v => v.lang === "en-US")
+        ?? voices.find(v => v.lang?.toLowerCase().startsWith("en"))
+        ?? null;
   }
+  // pt-BR (padrão)
+  return voices.find(v => v.lang === "pt-BR")
+      ?? voices.find(v => v.lang?.toLowerCase() === "pt-br")
+      ?? voices.find(v => v.lang?.toLowerCase().startsWith("pt"))
+      ?? null;
+}
+
+function ensureVoices() {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => { cachedVoice = null; };
+}
+
+function toggleVoiceLang() {
+  state.voiceLang = state.voiceLang === "pt-BR" ? "en-US" : "pt-BR";
+  cachedVoice = null;
+  const msg = state.voiceLang === "pt-BR"
+    ? "Voz em português brasileiro ativada!"
+    : "American English voice activated!";
+  speak(msg);
+  render();
+}
+
+function mulText(a, b) {
+  if (state.voiceLang === "en-US")
+    return `${a} times ${b} equals ${a * b}`;
+  return `${a} vezes ${b} é igual a ${a * b}`;
 }
 
 function speak(text) {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
-  const u     = new SpeechSynthesisUtterance(text);
-  u.lang      = "pt-BR";
-  u.rate      = 0.84;
-  u.pitch     = 1.08;
-  u.volume    = 1;
-  const voices = window.speechSynthesis.getVoices();
-  const pt     = voices.find(v => v.lang?.toLowerCase().startsWith("pt"));
-  if (pt) u.voice = pt;
-  window.speechSynthesis.speak(u);
-}
 
-function mulText(a, b) { return `${a} vezes ${b} é igual a ${a * b}`; }
+  const trySpeak = () => {
+    const u  = new SpeechSynthesisUtterance(text);
+    u.lang   = state.voiceLang;
+    u.rate   = 0.82;
+    u.pitch  = 1.1;
+    u.volume = 1;
+    const voice = getVoice(state.voiceLang);
+    if (voice) u.voice = voice;
+    window.speechSynthesis.speak(u);
+  };
+
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => trySpeak();
+  } else {
+    trySpeak();
+  }
+}
 
 /* ── Confete ──────────────────────────────────────────────── */
 (function confettiEngine() {
@@ -247,14 +282,20 @@ function finishExam() {
 
 /* ── Render helpers ───────────────────────────────────────── */
 function renderHeader() {
-  const online = navigator.onLine ? "🟢 Online" : "🟡 Offline";
+  const online   = navigator.onLine ? "🟢 Online" : "🟡 Offline";
+  const isBR     = state.voiceLang === "pt-BR";
+  const flagActive   = isBR  ? "🇧🇷" : "🇺🇸";
+  const flagInactive = isBR  ? "🇺🇸" : "🇧🇷";
+  const langLabel    = isBR  ? "Português BR" : "English US";
   return `
     <section class="hero">
       <div class="hero-badge">📚 3ª Série · Tabuada com voz e jogos</div>
       <h1>Tabuada do<br><span>João Pedro</span></h1>
       <p>Estude, escute, treine e faça provas. Funciona no iPhone mesmo sem internet depois do primeiro acesso.</p>
       <div class="hero-pills">
-        <span class="pill">🔊 Voz em português</span>
+        <button class="pill pill-lang" onclick="toggleVoiceLang()" title="Trocar idioma da voz">
+          ${flagActive} ${langLabel} <span class="pill-switch">${flagInactive}</span>
+        </button>
         <span class="pill">⭐ Progresso salvo</span>
         <span class="pill">📱 Instala no iPhone</span>
         <span class="pill">${online}</span>

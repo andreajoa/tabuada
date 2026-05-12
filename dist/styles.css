@@ -113,6 +113,23 @@ button, select { font: inherit; cursor: pointer; border: 0; }
   font-size: 13px; font-weight: 700; color: var(--muted);
 }
 
+.pill-lang {
+  background: rgba(124,58,237,.25);
+  border: 1px solid rgba(124,58,237,.5);
+  color: #c4b5fd;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.pill-lang:hover  { background: rgba(124,58,237,.4); }
+.pill-lang:active { transform: scale(.95); }
+
+.pill-switch {
+  opacity: .5; font-size: 11px;
+  border-left: 1px solid rgba(196,181,253,.3);
+  padding-left: 6px; margin-left: 2px;
+}
+
 /* ── Nav ─────────────────────────────────────────────────── */
 .nav {
   display: grid;
