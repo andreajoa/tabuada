@@ -1,0 +1,10 @@
+{
+  "name": "tabuada-joao-pedro",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev":     "python3 -m http.server 5173",
+    "build":   "rm -rf dist && mkdir -p dist/assets && cp index.html styles.css app.js sw.js manifest.webmanifest dist/ && cp -R assets/* dist/assets/",
+    "preview": "cd dist && python3 -m http.server 4173"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name":             "Tabuada do João Pedro — 3ª Série",
+  "short_name":       "Tabuada JP",
+  "description":      "App de tabuada com voz, treino, prova e progresso. Funciona offline.",
+  "start_url":        "/",
+  "scope":            "/",
+  "display":          "standalone",
+  "orientation":      "portrait",
+  "background_color": "#0f0a1e",
+  "theme_color":      "#7c3aed",
+  "icons": [
+    { "src": "/assets/icon.png",    "sizes": "512x512", "type": "image/png", "purpose": "any"       },
+    { "src": "/assets/icon.png",    "sizes": "512x512", "type": "image/png", "purpose": "maskable"  }
+  ]
+}
